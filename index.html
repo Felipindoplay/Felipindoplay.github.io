@@ -2,23 +2,191 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>Extensão | Chatdex Integration</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-Live Broadcast | Dashboard</title>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
-        body { background: #0e0e10; color: white; font-family: sans-serif; margin: 0; overflow: hidden; }
-        .header { padding: 10px; background: #18181b; display: flex; justify-content: space-between; align-items: center; }
-        iframe { width: 100vw; height: calc(100vh - 50px); border: none; }
-        .btn-back { color: #9146ff; text-decoration: none; font-size: 14px; }
+        :root {
+            --bg: #0f0f0f;
+            --card: #1a1a1a;
+            --twitch: #9146FF;
+            --youtube: #FF0000;
+            --text: #efeff1;
+            --success: #4CAF50;
+            --border: #333;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            background: var(--card);
+            padding: 2rem;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 450px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border: 1px solid var(--border);
+        }
+
+        h2 { text-align: center; margin-bottom: 1.5rem; font-weight: 700; }
+
+        .auth-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .btn-auth {
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            font-size: 13px;
+        }
+
+        .btn-yt { background: var(--youtube); color: white; }
+        .btn-tw { background: var(--twitch); color: white; }
+        .btn-auth:hover { filter: brightness(1.2); transform: translateY(-2px); }
+        .logged { border: 2px solid var(--success); box-shadow: 0 0 15px rgba(76, 175, 80, 0.2); }
+
+        .field { margin-bottom: 15px; }
+        label { display: block; font-size: 12px; color: #adadb8; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.5px; }
+        
+        input, textarea {
+            width: 100%;
+            padding: 12px;
+            background: #2a2a2a;
+            border: 1px solid #3d3d3d;
+            border-radius: 6px;
+            color: white;
+            box-sizing: border-box;
+            font-family: inherit;
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: var(--twitch);
+        }
+
+        .btn-send {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(45deg, var(--twitch), var(--youtube));
+            border: none;
+            border-radius: 6px;
+            color: white;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: opacity 0.3s;
+        }
+
+        .btn-send:hover { opacity: 0.9; }
+
+        .btn-extension {
+            width: 100%;
+            padding: 10px;
+            background: #252525;
+            border: 1px solid #444;
+            color: #9146ff;
+            border-radius: 6px;
+            margin-top: 15px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .btn-extension:hover { background: #333; }
+
+        #status { text-align: center; margin-top: 20px; font-size: 14px; min-height: 24px; }
+
+        /* Estilo do Pop-up de Cookies */
+        #cookie-popup {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #18181b;
+            padding: 15px 25px;
+            border-radius: 12px;
+            border: 1px solid #3f3f46;
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            z-index: 9999;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.6);
+        }
+
+        .logout-link {
+            background: none;
+            border: none;
+            color: #555;
+            cursor: pointer;
+            font-size: 11px;
+            margin-top: 15px;
+            display: block;
+            width: 100%;
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
-    <div class="header">
-        <a href="../" class="btn-back">← Voltar ao Painel</a>
-        <div id="channel-display">Carregando canal...</div>
-    </div>
-    
-    <div id="extension-container">
+
+    <div class="container">
+        <h2>Broadcast Control</h2>
+
+        <div class="auth-section">
+            <button id="btnYt" class="btn-auth btn-yt" onclick="loginYT()">Login YouTube</button>
+            <button id="btnTw" class="btn-auth btn-tw" onclick="loginTW()">Login Twitch</button>
         </div>
 
-    <script src="ext.js"></script>
+        <div class="field">
+            <label>YouTube (@handle)</label>
+            <input type="text" id="ytHandle" placeholder="@DanteWill" value="@DanteWill">
+        </div>
+
+        <div class="field">
+            <label>Twitch (usuário)</label>
+            <input type="text" id="twUser" placeholder="dante_will" value="dante_will">
+        </div>
+
+        <div class="field">
+            <label>Mensagem para os Chats</label>
+            <textarea id="msg" rows="3" placeholder="Sua mensagem aqui..."></textarea>
+        </div>
+
+        <button class="btn-send" onclick="disparar()">Enviar Mensagem</button>
+        
+        <button class="btn-extension" onclick="window.location.href='./extensao'">
+            Ver Extensão Chatdex ↗
+        </button>
+
+        <button class="logout-link" onclick="limparSessao()">Limpar Sessão e Dados Salvos</button>
+
+        <div id="status"></div>
+    </div>
+
+    <div id="cookie-popup">
+        <p style="margin:0; font-size:13px;">Este site utiliza cookies locais para salvar seus canais e tokens de acesso.</p>
+        <button onclick="aceitarCookies()" style="background:var(--success); color:white; border:none; padding:8px 16px; border-radius:6px; cursor:pointer; font-weight:bold;">Entendi</button>
+    </div>
+
+    <script src="script.js"></script>
 </body>
 </html>
