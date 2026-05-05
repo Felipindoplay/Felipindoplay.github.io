@@ -6,12 +6,16 @@ let tokens = { yt: null, tw: null };
 let tokenClient;
 
 // --- INICIALIZAÇÃO E COOKIES ---
-
 window.onload = () => {
     verificarCookieBanner();
     carregarSessaoSalva();
 
-    // Captura token da Twitch na URL
+    // SALVAR NOMES AO DIGITAR (Novo)
+    const ytInput = document.getElementById('ytHandle');
+    const twInput = document.getElementById('twUser');
+
+    ytInput.addEventListener('input', () => localStorage.setItem('saved_yt', ytInput.value));
+    twInput.addEventListener('input', () => localStorage.setItem('saved_tw', twInput.value));    // Captura token da Twitch na URL
     const params = new URLSearchParams(window.location.hash.replace('#', '?'));
     if (params.has('access_token')) {
         tokens.tw = params.get('access_token');
@@ -63,6 +67,20 @@ function atualizarInterfaceBotao(id, texto) {
     const btn = document.getElementById(id);
     btn.classList.add('logged');
     btn.innerText = texto;
+};
+
+function carregarSessaoSalva() {
+    const sYt = localStorage.getItem('yt_token');
+    const sTw = localStorage.getItem('tw_token');
+    const hYt = localStorage.getItem('saved_yt'); // @ do YT
+    const hTw = localStorage.getItem('saved_tw'); // User da Twitch
+
+    if (sYt) { tokens.yt = sYt; atualizarInterfaceBotao('btnYt', 'YouTube (Auto)'); }
+    if (sTw) { tokens.tw = sTw; atualizarInterfaceBotao('btnTw', 'Twitch (Auto)'); }
+    
+    // Preenche os campos automaticamente com o que foi salvo
+    if (hYt) document.getElementById('ytHandle').value = hYt;
+    if (hTw) document.getElementById('twUser').value = hTw;
 }
 
 // --- LÓGICA DE ENVIO ---
