@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assistir | MultiDash</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
+    <style>
+        body { background-color: #000; color: white; margin: 0; overflow-x: hidden; }
+        .player-wrapper { 
+            position: relative; 
+            width: 100%; 
+            padding-top: 56.25%; /* Proporção 16:9 */
+            background: #111;
+        }
+        .player-wrapper iframe, .player-wrapper div {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%; border: none;
+        }
+        .selector-bar {
+            display: flex;
+            padding: 10px;
+            gap: 10px;
+            background: #1a1a1a;
+            justify-content: center;
+        }
+        .btn-yt-active { background: #ff0000 !important; border: none; }
+        .btn-tw-active { background: #9146ff !important; border: none; }
+    </style>
+</head>
+<body>
+
+    <main>
+        <div class="selector-bar">
+            <button id="btn-tw" class="secondary outline" onclick="AssistirManager.switchPlatform('twitch')">Twitch</button>
+            <button id="btn-yt" class="secondary outline" onclick="AssistirManager.switchPlatform('youtube')">YouTube</button>
+        </div>
+
+        <div class="player-wrapper" id="video-container">
+            <div style="display:flex; align-items:center; justify-content:center;">
+                <p>Selecione uma plataforma para carregar a live</p>
+            </div>
+        </div>
+
+        <div class="container" style="margin-top: 20px; text-align: center;">
+            <a href="/" class="secondary outline">Voltar ao Início</a>
+        </div>
+    </main>
+
+    <script src="../js/global.js"></script>
+    <script src="assistir.js"></script>
+</body>
+</html>
