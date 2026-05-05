@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | Multi-Live</title>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
+</head>
+<body>
+    <main class="container" style="max-width: 400px; padding-top: 50px;">
+        <article>
+            <h3 style="text-align: center">Conectar Contas</h3>
+            <button onclick="loginYT()" style="background:#ff0000; border:none">Login com YouTube</button>
+            <button onclick="loginTW()" style="background:#9146ff; border:none; margin-top:10px">Login com Twitch</button>
+            <hr>
+            <button onclick="window.location.href='/'" class="secondary outline">Voltar ao Início</button>
+        </article>
+    </main>
+
+    <script src="/js/global.js"></script>
+    <script>
+        // Lógica de captura de avatares após login
+        async function fetchAvatars() {
+            // Twitch Avatar
+            const twToken = localStorage.getItem('tw_token');
+            if(twToken) {
+                const res = await fetch('https://api.twitch.tv/helix/users', {
+                    headers: { 'Authorization': `Bearer ${twToken}`, 'Client-Id': TW_CLIENT_ID }
+                }).then(r => r.json());
+                localStorage.setItem('tw_avatar', res.data[0].profile_image_url);
+            }
+
+            // YouTube Avatar
+            const ytToken = localStorage.getItem('yt_token');
+            if(ytToken) {
+                const res = await fetch('https://www.googleapis.com/youtube/v3/channels?part=snippet&mine=true', {
+                    headers: { 'Authorization': `Bearer ${ytToken}` }
+                }).then(r => r.json());
+                localStorage.setItem('yt_avatar', res.items[0].snippet.thumbnails.default.url);
+            }
+        }
+
+        // ... (Funções loginYT e loginTW aqui - mesmas do código anterior) ...
+        // Após o login com sucesso em qualquer uma, chame fetchAvatars()
+    </script>
+</body>
+</html>
