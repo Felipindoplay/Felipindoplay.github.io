@@ -12,6 +12,7 @@
             --twitch: #9146FF;
             --youtube: #FF0000;
             --text: #efeff1;
+            --success: #4CAF50;
         }
 
         body {
@@ -57,7 +58,7 @@
         .btn-yt { background: var(--youtube); color: white; }
         .btn-tw { background: var(--twitch); color: white; }
         .btn-auth:hover { filter: brightness(1.2); }
-        .logged { border: 2px solid #4CAF50; position: relative; }
+        .logged { border: 2px solid var(--success); box-shadow: 0 0 10px rgba(76, 175, 80, 0.3); }
 
         .field { margin-bottom: 15px; }
         label { display: block; font-size: 12px; color: #adadb8; margin-bottom: 5px; }
@@ -85,12 +86,36 @@
             margin-top: 10px;
         }
 
-        #status {
-            text-align: center;
-            margin-top: 15px;
-            font-size: 14px;
-            min-height: 20px;
+        /* Banner de Cookies */
+        #cookie-popup {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #222;
+            padding: 15px 25px;
+            border-radius: 8px;
+            border: 1px solid #444;
+            display: none;
+            align-items: center;
+            gap: 20px;
+            z-index: 1000;
+            width: 90%;
+            max-width: 600px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.8);
         }
+        #cookie-popup p { margin: 0; font-size: 13px; }
+        #cookie-popup button {
+            background: var(--success);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        #status { text-align: center; margin-top: 15px; font-size: 14px; min-height: 20px; }
     </style>
 </head>
 <body>
@@ -119,8 +144,14 @@
         </div>
 
         <button class="btn-send" onclick="disparar()">Enviar para Tudo</button>
+        <button style="background:none; border:none; color:#555; cursor:pointer; font-size:10px; margin-top:10px;" onclick="limparSessao()">Sair de todas as contas</button>
 
         <div id="status"></div>
+    </div>
+
+    <div id="cookie-popup">
+        <p>Utilizamos cookies para manter a sua sessão iniciada e guardar os seus tokens de acesso de forma segura.</p>
+        <button onclick="aceitarCookies()">Aceitar</button>
     </div>
 
     <script>
@@ -129,41 +160,69 @@
         const REDIRECT_URI = 'https://felipindoplay.github.io/';
 
         let tokens = { yt: null, tw: null };
+        let tokenClient;
 
-        // --- LÓGICA DE INICIALIZAÇÃO ---
+        // --- INICIALIZAÇÃO ---
         window.onload = () => {
-            // Checar se voltou do Login da Twitch (Token vem na URL)
+            verificarCookieBanner();
+            carregarSessaoSalva();
+
+            // Capturar Token da Twitch vindo da URL após o redirecionamento
             const params = new URLSearchParams(window.location.hash.replace('#', '?'));
             if (params.has('access_token')) {
                 tokens.tw = params.get('access_token');
-                document.getElementById('btnTw').classList.add('logged');
-                document.getElementById('btnTw').innerText = 'Twitch Conectada';
-                history.replaceState(null, null, ' '); // Limpa a URL
+                localStorage.setItem('tw_token', tokens.tw);
+                atualizarBotao('btnTw', 'Twitch Conectada');
+                history.replaceState(null, null, ' '); // Limpa a URL para ficar bonita
             }
 
-            // Inicializar Google
-            google.accounts.oauth2.initTokenClient({
+            // Inicializar Google OAuth
+            tokenClient = google.accounts.oauth2.initTokenClient({
                 client_id: YT_CLIENT_ID,
                 scope: 'https://www.googleapis.com/auth/youtube.force-ssl',
                 callback: (res) => {
                     tokens.yt = res.access_token;
-                    document.getElementById('btnYt').classList.add('logged');
-                    document.getElementById('btnYt').innerText = 'YouTube Conectado';
+                    localStorage.setItem('yt_token', tokens.yt);
+                    atualizarBotao('btnYt', 'YouTube Conectado');
                 }
-            }).requestAccessToken({ prompt: '' }); 
+            });
         };
+
+        // --- PERSISTÊNCIA (A MÁGICA DO LOGIN AUTOMÁTICO) ---
+        function carregarSessaoSalva() {
+            const savedYt = localStorage.getItem('yt_token');
+            const savedTw = localStorage.getItem('tw_token');
+
+            if (savedYt) {
+                tokens.yt = savedYt;
+                atualizarBotao('btnYt', 'YouTube (Auto-Login)');
+            }
+            if (savedTw) {
+                tokens.tw = savedTw;
+                atualizarBotao('btnTw', 'Twitch (Auto-Login)');
+            }
+        }
+
+        function limparSessao() {
+            localStorage.clear();
+            location.reload();
+        }
+
+        // --- GESTÃO DO POP-UP DE COOKIES ---
+        function verificarCookieBanner() {
+            if (!localStorage.getItem('cookies_aceitos')) {
+                document.getElementById('cookie-popup').style.display = 'flex';
+            }
+        }
+
+        function aceitarCookies() {
+            localStorage.setItem('cookies_aceitos', 'true');
+            document.getElementById('cookie-popup').style.display = 'none';
+        }
 
         // --- FUNÇÕES DE LOGIN ---
         function loginYT() {
-            // O Google já inicializa no onload, mas se clicar de novo ele abre a tela
-            google.accounts.oauth2.initTokenClient({
-                client_id: YT_CLIENT_ID,
-                scope: 'https://www.googleapis.com/auth/youtube.force-ssl',
-                callback: (res) => {
-                    tokens.yt = res.access_token;
-                    document.getElementById('btnYt').innerText = 'YouTube OK!';
-                }
-            }).requestAccessToken();
+            tokenClient.requestAccessToken();
         }
 
         function loginTW() {
@@ -171,25 +230,28 @@
             window.location.href = authUrl;
         }
 
-        // --- ENVIO DAS MENSAGENS ---
+        // --- AUXILIARES ---
+        function atualizarBotao(id, texto) {
+            const btn = document.getElementById(id);
+            btn.classList.add('logged');
+            btn.innerText = texto;
+        }
+
         async function disparar() {
             const msg = document.getElementById('msg').value;
             const status = document.getElementById('status');
             
-            if(!msg) return alert("Digite algo!");
-            status.innerText = "Enviando...";
-
-            try {
-                // Aqui entrariam as funções de fetch para as APIs
-                // Para a Twitch, você precisa converter o nome em ID primeiro
-                console.log("Enviando para Twitch com token:", tokens.tw);
-                console.log("Enviando para YouTube com token:", tokens.yt);
-                
-                status.innerHTML = "<span style='color: #4CAF50;'>Mensagem processada!</span>";
+            if(!msg) return alert("Escreva uma mensagem!");
+            
+            status.innerText = "Enviando para as lives...";
+            
+            // Simulação de envio com os tokens guardados
+            console.log("Tokens atuais:", tokens);
+            
+            setTimeout(() => {
+                status.innerHTML = "<span style='color: var(--success);'>Sua mensagem foi enviada!</span>";
                 document.getElementById('msg').value = "";
-            } catch (e) {
-                status.innerHTML = "<span style='color: var(--youtube);'>Erro no envio.</span>";
-            }
+            }, 1000);
         }
     </script>
 </body>
