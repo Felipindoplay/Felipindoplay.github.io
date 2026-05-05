@@ -3,199 +3,193 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Multi-Chat Broadcaster</title>
+    <title>Multi-Chat | DanteWill Dashboard</title>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
         :root {
-            --bg-color: #121212;
-            --container-bg: #1e1e1e;
-            --text-color: #ffffff;
-            --twitch-color: #9146FF;
-            --youtube-color: #FF0000;
-            --button-hover: #333333;
+            --bg: #0f0f0f;
+            --card: #1a1a1a;
+            --twitch: #9146FF;
+            --youtube: #FF0000;
+            --text: #efeff1;
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
             margin: 0;
         }
 
         .container {
-            background-color: var(--container-bg);
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.5);
+            background: var(--card);
+            padding: 2rem;
+            border-radius: 12px;
             width: 100%;
             max-width: 450px;
-        }
-
-        h2 { text-align: center; margin-bottom: 25px; }
-
-        .input-group { margin-bottom: 15px; }
-
-        label { display: block; margin-bottom: 5px; font-size: 14px; color: #aaaaaa; }
-
-        input, textarea {
-            width: 100%;
-            padding: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
             border: 1px solid #333;
-            background-color: #2a2a2a;
-            color: white;
-            border-radius: 6px;
-            box-sizing: border-box;
         }
 
-        .auth-buttons {
-            display: flex;
+        h2 { text-align: center; margin-bottom: 1.5rem; color: #fff; }
+
+        .auth-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
             gap: 10px;
             margin-bottom: 20px;
         }
 
         .btn-auth {
-            flex: 1;
             padding: 10px;
             border: none;
-            border-radius: 4px;
+            border-radius: 6px;
             cursor: pointer;
             font-weight: bold;
-            font-size: 12px;
+            transition: 0.3s;
+            font-size: 13px;
         }
 
-        .btn-yt { background-color: var(--youtube-color); color: white; }
-        .btn-tw { background-color: var(--twitch-color); color: white; opacity: 0.6; }
+        .btn-yt { background: var(--youtube); color: white; }
+        .btn-tw { background: var(--twitch); color: white; }
+        .btn-auth:hover { filter: brightness(1.2); }
+        .logged { border: 2px solid #4CAF50; position: relative; }
+
+        .field { margin-bottom: 15px; }
+        label { display: block; font-size: 12px; color: #adadb8; margin-bottom: 5px; }
+        
+        input, textarea {
+            width: 100%;
+            padding: 12px;
+            background: #2a2a2a;
+            border: 1px solid #3d3d3d;
+            border-radius: 6px;
+            color: white;
+            box-sizing: border-box;
+        }
 
         .btn-send {
             width: 100%;
             padding: 15px;
-            background: linear-gradient(90deg, #6441a5 0%, #d42424 100%);
-            color: white;
+            background: linear-gradient(45deg, var(--twitch), var(--youtube));
             border: none;
             border-radius: 6px;
-            font-size: 16px;
+            color: white;
             font-weight: bold;
+            font-size: 16px;
             cursor: pointer;
+            margin-top: 10px;
         }
 
-        #statusMessage {
-            margin-top: 15px;
+        #status {
             text-align: center;
-            font-size: 13px;
+            margin-top: 15px;
+            font-size: 14px;
+            min-height: 20px;
         }
-
-        .success { color: #4CAF50; }
-        .error { color: #F44336; }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h2>Multi-Live Chat</h2>
-        
-        <div class="auth-buttons">
-            <button class="btn-auth btn-yt" onclick="loginYouTube()">Login YouTube</button>
-            <button class="btn-auth btn-tw" disabled title="Aguardando API da Twitch">Login Twitch</button>
+        <h2>Multi-Live Broadcast</h2>
+
+        <div class="auth-section">
+            <button id="btnYt" class="btn-auth btn-yt" onclick="loginYT()">Login YouTube</button>
+            <button id="btnTw" class="btn-auth btn-tw" onclick="loginTW()">Login Twitch</button>
         </div>
 
-        <div class="input-group">
-            <label>ID do Canal YouTube</label>
-            <input type="text" id="ytChannelId" placeholder="UCCOgOae02L-GF6_EFqfAgpA">
+        <div class="field">
+            <label>ID do Canal (YouTube)</label>
+            <input type="text" id="ytId" value="UCCOgOae02L-GF6_EFqfAgpA">
         </div>
 
-        <div class="input-group">
-            <label>Usuário Twitch</label>
-            <input type="text" id="twUser" placeholder="dante_will">
+        <div class="field">
+            <label>Nome do Canal (Twitch)</label>
+            <input type="text" id="twUser" value="dante_will">
         </div>
 
-        <div class="input-group">
-            <label>Mensagem</label>
-            <textarea id="messageInput" placeholder="Olá pessoal!"></textarea>
+        <div class="field">
+            <label>Sua Mensagem</label>
+            <textarea id="msg" placeholder="Envie um salve para as lives!"></textarea>
         </div>
 
-        <button class="btn-send" onclick="enviarMensagem()">Enviar para Ambos</button>
+        <button class="btn-send" onclick="disparar()">Enviar para Tudo</button>
 
-        <div id="statusMessage"></div>
+        <div id="status"></div>
     </div>
 
     <script>
-        let googleToken = null;
-        let tokenClient;
+        const YT_CLIENT_ID = '18363074943-aegjp8fciocd0ehjr2l2orkma5dfn9rp.apps.googleusercontent.com';
+        const TW_CLIENT_ID = 'htrr9qq65jbouxi9d12owqlm5ikpng';
+        const REDIRECT_URI = 'https://felipindoplay.github.io/';
 
-        // Configuração do Google OAuth
-        window.onload = function () {
-            tokenClient = google.accounts.oauth2.initTokenClient({
-                client_id: '18363074943-aegjp8fciocd0ehjr2l2orkma5dfn9rp.apps.googleusercontent.com',
+        let tokens = { yt: null, tw: null };
+
+        // --- LÓGICA DE INICIALIZAÇÃO ---
+        window.onload = () => {
+            // Checar se voltou do Login da Twitch (Token vem na URL)
+            const params = new URLSearchParams(window.location.hash.replace('#', '?'));
+            if (params.has('access_token')) {
+                tokens.tw = params.get('access_token');
+                document.getElementById('btnTw').classList.add('logged');
+                document.getElementById('btnTw').innerText = 'Twitch Conectada';
+                history.replaceState(null, null, ' '); // Limpa a URL
+            }
+
+            // Inicializar Google
+            google.accounts.oauth2.initTokenClient({
+                client_id: YT_CLIENT_ID,
                 scope: 'https://www.googleapis.com/auth/youtube.force-ssl',
-                callback: (response) => {
-                    if (response.access_token) {
-                        googleToken = response.access_token;
-                        mostrarStatus('Login no YouTube realizado!', 'success');
-                    }
-                },
-            });
+                callback: (res) => {
+                    tokens.yt = res.access_token;
+                    document.getElementById('btnYt').classList.add('logged');
+                    document.getElementById('btnYt').innerText = 'YouTube Conectado';
+                }
+            }).requestAccessToken({ prompt: '' }); 
         };
 
-        function loginYouTube() {
-            tokenClient.requestAccessToken();
+        // --- FUNÇÕES DE LOGIN ---
+        function loginYT() {
+            // O Google já inicializa no onload, mas se clicar de novo ele abre a tela
+            google.accounts.oauth2.initTokenClient({
+                client_id: YT_CLIENT_ID,
+                scope: 'https://www.googleapis.com/auth/youtube.force-ssl',
+                callback: (res) => {
+                    tokens.yt = res.access_token;
+                    document.getElementById('btnYt').innerText = 'YouTube OK!';
+                }
+            }).requestAccessToken();
         }
 
-        async function enviarMensagem() {
-            const msg = document.getElementById('messageInput').value.trim();
-            const ytId = document.getElementById('ytChannelId').value.trim();
+        function loginTW() {
+            const authUrl = `https://id.twitch.tv/oauth2/authorize?client_id=${TW_CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=token&scope=user:write:chat+user:read:chat`;
+            window.location.href = authUrl;
+        }
+
+        // --- ENVIO DAS MENSAGENS ---
+        async function disparar() {
+            const msg = document.getElementById('msg').value;
+            const status = document.getElementById('status');
             
-            if (!msg) return mostrarStatus('Digite uma mensagem!', 'error');
-
-            mostrarStatus('Processando...', '');
-
-            const tasks = [];
-
-            // Lógica YouTube (Real)
-            if (ytId && googleToken) {
-                tasks.push(handleYouTubeSend(ytId, msg));
-            } else if (ytId && !googleToken) {
-                mostrarStatus('Faça login no YouTube primeiro!', 'error');
-                return;
-            }
-
-            // Lógica Twitch (Placeholder)
-            const twUser = document.getElementById('twUser').value.trim();
-            if (twUser) {
-                console.log("Twitch ainda não configurada.");
-            }
+            if(!msg) return alert("Digite algo!");
+            status.innerText = "Enviando...";
 
             try {
-                await Promise.all(tasks);
-                mostrarStatus('Enviado com sucesso!', 'success');
-                document.getElementById('messageInput').value = '';
+                // Aqui entrariam as funções de fetch para as APIs
+                // Para a Twitch, você precisa converter o nome em ID primeiro
+                console.log("Enviando para Twitch com token:", tokens.tw);
+                console.log("Enviando para YouTube com token:", tokens.yt);
+                
+                status.innerHTML = "<span style='color: #4CAF50;'>Mensagem processada!</span>";
+                document.getElementById('msg').value = "";
             } catch (e) {
-                mostrarStatus('Erro no envio. Verifique o console.', 'error');
-                console.error(e);
+                status.innerHTML = "<span style='color: var(--youtube);'>Erro no envio.</span>";
             }
-        }
-
-        async function handleYouTubeSend(channelId, text) {
-            // 1. Achar a live ativa do canal
-            const searchUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${channelId}&type=video&eventType=live&key=SUA_API_KEY_AQUI`;
-            // Nota: Para segurança no GitHub Pages, o ideal é pegar o ID da live via fetch
-            // Mas para enviar, precisamos do activeLiveChatId.
-            
-            const liveData = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=liveStreamingDetails&id=VIDEO_ID_AQUI`, {
-                headers: { 'Authorization': `Bearer ${googleToken}` }
-            }).then(r => r.json());
-
-            // 2. Enviar a mensagem (Simulação até você gerar a API KEY de Navegador se necessário)
-            console.log("Enviando para o Chat ID do YouTube...");
-        }
-
-        function mostrarStatus(t, c) {
-            const s = document.getElementById('statusMessage');
-            s.textContent = t;
-            s.className = c;
         }
     </script>
 </body>
