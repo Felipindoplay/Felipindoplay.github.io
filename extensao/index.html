@@ -2,18 +2,85 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>Extensão | Chatdex Integration</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatdex | dante_will</title>
     <style>
-    body, html { height: 100%; margin: 0; background: #0e0e10; color: white; overflow: hidden; }
-    .header { height: 50px; background: #18181b; display: flex; align-items: center; padding: 0 20px; border-bottom: 1px solid #333; }
-    #extension-container { 
-        height: calc(100vh - 50px); /* Ocupa o resto da tela */
-        width: 100%; 
-    }
-</style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body, html { 
+            height: 100%; 
+            background: #0e0e10; 
+            color: white; 
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+        }
 
-<div class="header">
-    <a href="../" style="color: #9146ff; text-decoration: none;">← Voltar</a>
-    <span id="channel-display" style="margin-left: 20px;">Carregando...</span>
-</div>
-<div id="extension-container"></div>
+        .header {
+            height: 50px;
+            background: #18181b;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            border-bottom: 1px solid #2d2d30;
+            justify-content: space-between;
+        }
+
+        .header a {
+            color: #9146ff;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .header span {
+            font-size: 13px;
+            color: #adadb8;
+        }
+
+        #extension-container {
+            width: 100%;
+            height: calc(100vh - 50px);
+            background: #0e0e10;
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /* Estilo para o link de fallback caso o navegador bloqueie */
+        .fallback-zone {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .btn-direct {
+            background: #9146ff;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: bold;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <a href="../">← Voltar ao Painel</a>
+        <span>Canal: <strong>dante_will</strong></span>
+    </div>
+
+    <div id="extension-container">
+        </div>
+
+    <script src="ext.js"></script>
+</body>
+</html>
