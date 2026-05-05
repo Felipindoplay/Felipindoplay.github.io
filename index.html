@@ -3,32 +3,85 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Multi-Live Home</title>
+    <title>Home | MultiDash</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
     <style>
         body { background: #0f0f0f; color: white; }
-        .menu-grid { display: grid; gap: 20px; padding: 20px; }
-        .card { background: #1a1a1a; padding: 20px; border-radius: 12px; text-align: center; border: 1px solid #333; }
-        .status-dot { height: 10px; width: 10px; border-radius: 50%; display: inline-block; margin-right: 5px; }
+        
+        /* Grid ajustado para comportar o novo botão */
+        .grid-functions { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            gap: 15px; 
+            margin-top: 20px; 
+        }
+
+        /* Cores personalizadas para os botões */
+        .btn-login { background-color: #444 !important; border: none; }
+        .btn-send { background-color: #9146ff !important; border: none; } /* Roxo Twitch */
+        .btn-read { background-color: #0080ff !important; border: none; } /* Azul Leitura */
+        .btn-dex { background-color: #6441a5 !important; border: none; }
+        .btn-watch { background-color: #ff0000 !important; border: none; } /* Vermelho YT */
+
+        .afk-section { 
+            margin-top: 40px; 
+            padding: 20px; 
+            background: #1a1a1a; 
+            border-radius: 12px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            border: 1px solid #333;
+        }
+
+        /* Switch do Modo AFK */
+        .switch { position: relative; display: inline-block; width: 50px; height: 24px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #333; transition: .4s; border-radius: 24px; }
+        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 4px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: #9146ff; }
+        input:checked + .slider:before { transform: translateX(26px); }
     </style>
 </head>
 <body>
-    <main class="container">
-        <h2 style="text-align: center; margin-top: 20px;">Bem-vindo</h2>
-        
-        <div class="menu-grid">
-            <div class="card">
-                <h3>Acesso</h3>
-                <button onclick="window.location.href='/login/'" class="contrast">Página de Login</button>
-            </div>
 
-            <div class="card">
-                <h3>Controle</h3>
-                <button onclick="window.location.href='/chat/'" style="background:#9146ff">Abrir Chat Integrado</button>
-                <button onclick="window.location.href='/extensao/'" style="background:#222; margin-top:10px">Extensão Chatdex</button>
+    <main class="container">
+        <h3 style="text-align: center; margin-top: 20px;">Painel de Controle</h3>
+
+        <div class="grid-functions">
+            <button onclick="window.location.href='/login/login.html'" class="btn-login">🔑 Login</button>
+            
+            <button onclick="window.location.href='/assistir/'" class="btn-watch">📺 Assistir</button>
+
+            <button onclick="window.location.href='/chat/'" class="btn-send">💬 Enviar Chat</button>
+
+            <button onclick="window.location.href='/chat/chat/'" class="btn-read">👁️ Leitura Chat</button>
+
+            <button onclick="window.location.href='/chatdex/'" class="btn-dex">📱 Chatdex</button>
+        </div>
+
+        <div class="afk-section">
+            <div>
+                <strong style="display: block;">Modo AFK</strong>
+                <small style="color: #adadb8;">Live oculta e sem som</small>
             </div>
+            <label class="switch">
+                <input type="checkbox" id="afk-toggle" onchange="toggleAFK(this.checked)">
+                <span class="slider"></span>
+            </label>
         </div>
     </main>
-    <script src="/js/global.js"></script>
+
+    <script src="js/global.js"></script>
+    <script>
+        // Inicializa o switch com o valor salvo no localStorage
+        document.getElementById('afk-toggle').checked = DB.get('afk_mode') === 'true';
+
+        function toggleAFK(isActive) {
+            DB.save('afk_mode', isActive);
+            // Recarrega para aplicar o player invisível do global.js
+            location.reload();
+        }
+    </script>
 </body>
 </html>
