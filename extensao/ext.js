@@ -1,39 +1,45 @@
 window.onload = () => {
-    // 1. Pega o canal salvo ou usa o padrão
-    const savedTwitchChannel = localStorage.getItem('saved_tw') || "dante_will";
+    // 1. Tentar ler o canal guardado
+    const savedTwitchChannel = localStorage.getItem('saved_tw');
     const display = document.getElementById('channel-display');
     const container = document.getElementById('extension-container');
 
-    display.innerText = `Canal: ${savedTwitchChannel}`;
+    // DEBUG: Verificar no console se o valor existe
+    console.log("Canal recuperado do localStorage:", savedTwitchChannel);
 
-    // 2. Configurações da Extensão
-    const extensionId = "1x8qj46mqdjosccu7kzbyngnmsd3fn";
-    const domain = "felipindoplay.github.io"; // O seu domínio exato no GitHub
+    if (savedTwitchChannel && savedTwitchChannel.trim() !== "") {
+        const channel = savedTwitchChannel.trim().toLowerCase();
+        display.innerText = `Canal: ${channel}`;
 
-    // 3. Criar o Iframe com a URL de Popout da própria Twitch
-    // Este formato é o que melhor evita o erro de "Invalid ID" ou "Connection Refused"
-    const iframe = document.createElement('iframe');
-    
-    // A URL deve apontar para o popout da extensão dentro da estrutura da Twitch
-    iframe.src = `https://www.twitch.tv/popout/${savedTwitchChannel}/extensions/${extensionId}/panel?parent=${domain}`;
-    
-    iframe.style.width = "100%";
-    iframe.style.height = "100%";
-    iframe.style.border = "none";
-    iframe.setAttribute("allowfullscreen", "true");
+        const extensionId = "1x8qj46mqdjosccu7kzbyngnmsd3fn";
+        const domain = "felipindoplay.github.io";
 
-    // 4. Fallback (Link de Segurança)
-    // Caso o iframe ainda seja bloqueado por políticas do navegador
-    container.innerHTML = `
-        <div style="padding: 15px; text-align: center; background: #1a1a1a; border-bottom: 1px solid #333;">
-            <p style="font-size: 14px; margin-bottom: 10px;">Se a extensão não carregar, clique no botão abaixo:</p>
-            <a href="https://www.twitch.tv/popout/${savedTwitchChannel}/extensions/${extensionId}/panel" 
-               target="_blank" 
-               style="background:#9146ff; color:white; padding:8px 16px; border-radius:4px; text-decoration:none; font-weight:bold; font-size: 13px;">
-               Abrir Chatdex (Janela Externa)
-            </a>
-        </div>
-    `;
+        // Criar o Iframe
+        const iframe = document.createElement('iframe');
+        
+        // URL de Popout com os parâmetros de segurança necessários
+        iframe.src = `https://www.twitch.tv/popout/${channel}/extensions/${extensionId}/panel?parent=${domain}`;
+        
+        iframe.style.width = "100%";
+        iframe.style.height = "100%";
+        iframe.style.border = "none";
+        iframe.setAttribute("allowfullscreen", "true");
+
+        // Limpar o container e adicionar o iframe
+        container.innerHTML = ""; 
+        container.appendChild(iframe);
+
+    } else {
+        // Se não houver nada guardado, mostramos um erro e um botão para voltar
+        display.innerHTML = `<span style="color:#ff4444">⚠️ Erro: Nenhum canal configurado!</span>`;
+        container.innerHTML = `
+            <div style="padding: 40px; text-align: center; color: #adadb8;">
+                <p>Parece que não definiste o utilizador da Twitch na página principal.</p>
+                <a href="../" style="color: #9146ff; font-weight: bold;">Voltar ao Início para configurar</a>
+            </div>
+        `;
+    }
+};
     
     container.appendChild(iframe);
 };
