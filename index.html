@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Multi-Chat | DanteWill Dashboard</title>
+    <title>Multi-Live Broadcast Dashboard</title>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
         :root {
@@ -71,6 +71,7 @@
             border-radius: 6px;
             color: white;
             box-sizing: border-box;
+            font-family: inherit;
         }
 
         .btn-send {
@@ -86,7 +87,8 @@
             margin-top: 10px;
         }
 
-        /* Banner de Cookies */
+        #status { text-align: center; margin-top: 15px; font-size: 14px; min-height: 20px; }
+
         #cookie-popup {
             position: fixed;
             bottom: 20px;
@@ -102,20 +104,19 @@
             z-index: 1000;
             width: 90%;
             max-width: 600px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.8);
-        }
-        #cookie-popup p { margin: 0; font-size: 13px; }
-        #cookie-popup button {
-            background: var(--success);
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: bold;
         }
 
-        #status { text-align: center; margin-top: 15px; font-size: 14px; min-height: 20px; }
+        .logout-link {
+            background: none;
+            border: none;
+            color: #555;
+            cursor: pointer;
+            font-size: 10px;
+            margin-top: 10px;
+            display: block;
+            width: 100%;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
@@ -129,130 +130,31 @@
         </div>
 
         <div class="field">
-            <label>ID do Canal (YouTube)</label>
-            <input type="text" id="ytId" value="UCCOgOae02L-GF6_EFqfAgpA">
+            <label>YouTube (@ do canal)</label>
+            <input type="text" id="ytHandle" placeholder="@DanteWill" value="@DanteWill">
         </div>
 
         <div class="field">
-            <label>Nome do Canal (Twitch)</label>
-            <input type="text" id="twUser" value="dante_will">
+            <label>Twitch (usuário)</label>
+            <input type="text" id="twUser" placeholder="dante_will" value="dante_will">
         </div>
 
         <div class="field">
-            <label>Sua Mensagem</label>
-            <textarea id="msg" placeholder="Envie um salve para as lives!"></textarea>
+            <label>Mensagem</label>
+            <textarea id="msg" placeholder="Digite sua mensagem aqui..."></textarea>
         </div>
 
-        <button class="btn-send" onclick="disparar()">Enviar para Tudo</button>
-        <button style="background:none; border:none; color:#555; cursor:pointer; font-size:10px; margin-top:10px;" onclick="limparSessao()">Sair de todas as contas</button>
+        <button class="btn-send" onclick="disparar()">Enviar para Ambos</button>
+        <button class="logout-link" onclick="limparSessao()">Sair de todas as contas / Limpar Cookies</button>
 
         <div id="status"></div>
     </div>
 
     <div id="cookie-popup">
-        <p>Utilizamos cookies para manter a sua sessão iniciada e guardar os seus tokens de acesso de forma segura.</p>
-        <button onclick="aceitarCookies()">Aceitar</button>
+        <p style="margin:0; font-size:13px;">Usamos cookies para manter sua sessão ativa.</p>
+        <button onclick="aceitarCookies()" style="background:var(--success); color:white; border:none; padding:8px 15px; border-radius:4px; cursor:pointer;">Aceitar</button>
     </div>
 
-    <script>
-        const YT_CLIENT_ID = '18363074943-aegjp8fciocd0ehjr2l2orkma5dfn9rp.apps.googleusercontent.com';
-        const TW_CLIENT_ID = 'htrr9qq65jbouxi9d12owqlm5ikpng';
-        const REDIRECT_URI = 'https://felipindoplay.github.io/';
-
-        let tokens = { yt: null, tw: null };
-        let tokenClient;
-
-        // --- INICIALIZAÇÃO ---
-        window.onload = () => {
-            verificarCookieBanner();
-            carregarSessaoSalva();
-
-            // Capturar Token da Twitch vindo da URL após o redirecionamento
-            const params = new URLSearchParams(window.location.hash.replace('#', '?'));
-            if (params.has('access_token')) {
-                tokens.tw = params.get('access_token');
-                localStorage.setItem('tw_token', tokens.tw);
-                atualizarBotao('btnTw', 'Twitch Conectada');
-                history.replaceState(null, null, ' '); // Limpa a URL para ficar bonita
-            }
-
-            // Inicializar Google OAuth
-            tokenClient = google.accounts.oauth2.initTokenClient({
-                client_id: YT_CLIENT_ID,
-                scope: 'https://www.googleapis.com/auth/youtube.force-ssl',
-                callback: (res) => {
-                    tokens.yt = res.access_token;
-                    localStorage.setItem('yt_token', tokens.yt);
-                    atualizarBotao('btnYt', 'YouTube Conectado');
-                }
-            });
-        };
-
-        // --- PERSISTÊNCIA (A MÁGICA DO LOGIN AUTOMÁTICO) ---
-        function carregarSessaoSalva() {
-            const savedYt = localStorage.getItem('yt_token');
-            const savedTw = localStorage.getItem('tw_token');
-
-            if (savedYt) {
-                tokens.yt = savedYt;
-                atualizarBotao('btnYt', 'YouTube (Auto-Login)');
-            }
-            if (savedTw) {
-                tokens.tw = savedTw;
-                atualizarBotao('btnTw', 'Twitch (Auto-Login)');
-            }
-        }
-
-        function limparSessao() {
-            localStorage.clear();
-            location.reload();
-        }
-
-        // --- GESTÃO DO POP-UP DE COOKIES ---
-        function verificarCookieBanner() {
-            if (!localStorage.getItem('cookies_aceitos')) {
-                document.getElementById('cookie-popup').style.display = 'flex';
-            }
-        }
-
-        function aceitarCookies() {
-            localStorage.setItem('cookies_aceitos', 'true');
-            document.getElementById('cookie-popup').style.display = 'none';
-        }
-
-        // --- FUNÇÕES DE LOGIN ---
-        function loginYT() {
-            tokenClient.requestAccessToken();
-        }
-
-        function loginTW() {
-            const authUrl = `https://id.twitch.tv/oauth2/authorize?client_id=${TW_CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=token&scope=user:write:chat+user:read:chat`;
-            window.location.href = authUrl;
-        }
-
-        // --- AUXILIARES ---
-        function atualizarBotao(id, texto) {
-            const btn = document.getElementById(id);
-            btn.classList.add('logged');
-            btn.innerText = texto;
-        }
-
-        async function disparar() {
-            const msg = document.getElementById('msg').value;
-            const status = document.getElementById('status');
-            
-            if(!msg) return alert("Escreva uma mensagem!");
-            
-            status.innerText = "Enviando para as lives...";
-            
-            // Simulação de envio com os tokens guardados
-            console.log("Tokens atuais:", tokens);
-            
-            setTimeout(() => {
-                status.innerHTML = "<span style='color: var(--success);'>Sua mensagem foi enviada!</span>";
-                document.getElementById('msg').value = "";
-            }, 1000);
-        }
-    </script>
+    <script src="script.js"></script>
 </body>
 </html>
